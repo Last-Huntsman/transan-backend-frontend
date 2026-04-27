@@ -9,6 +9,7 @@ target/
 
 # Environment
 backend/.env
+.env
 
 # OS
 .DS_Store
