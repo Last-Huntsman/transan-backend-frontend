@@ -23,7 +23,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.InputStreamReader;
 import java.math.BigDecimal;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -113,7 +113,7 @@ public class SpendingService {
         int rowNum = 0;
 
         try (CSVReader reader = new CSVReaderBuilder(
-                new InputStreamReader(file.getInputStream(), Charset.forName("windows-1251")))
+                new InputStreamReader(file.getInputStream(), StandardCharsets.UTF_8))
                 .withCSVParser(new CSVParserBuilder().withSeparator(';').build())
                 .build()) {
 

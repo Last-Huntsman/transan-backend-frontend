@@ -52,11 +52,11 @@ public class SpendingController {
         return spendingService.findById(id, SecurityUtils.getCurrentUserId());
     }
 
-    @PostMapping("/{id}")
+    @PostMapping("")
     @ResponseStatus(HttpStatus.CREATED)
     @Operation(summary = "Create spending with given UUID (idempotent)")
-    public SpendingResponse create(@PathVariable UUID id, @Valid @RequestBody SpendingRequest request) {
-        return spendingService.create(id, request, SecurityUtils.getCurrentUserId());
+    public SpendingResponse create( @Valid @RequestBody SpendingRequest request) {
+        return spendingService.create(UUID.randomUUID(), request, SecurityUtils.getCurrentUserId());
     }
 
     @PutMapping("/{id}")
@@ -72,7 +72,7 @@ public class SpendingController {
         spendingService.delete(id, SecurityUtils.getCurrentUserId());
     }
 
-    @PostMapping("/import")
+    @PostMapping(value = "/import", consumes = "multipart/form-data")
     @Operation(summary = "Import spendings from Sberbank CSV file")
     public ImportResponse importCsv(@RequestParam("file") MultipartFile file) {
         return spendingService.importCsv(file, SecurityUtils.getCurrentUserId());
