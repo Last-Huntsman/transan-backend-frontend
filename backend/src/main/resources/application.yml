@@ -33,3 +33,9 @@ kafka:
   topics:
     forecast-input: ${KAFKA_FORECAST_PRODUCER_TOPIC:transan.forecast.input}
     forecast-output: ${KAFKA_FORECAST_CONSUMER_TOPIC:transan.forecast.output}
+
+app:
+  cors:
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:5173,http://127.0.0.1:5173}
+  forecast:
+    timeout-seconds: ${FORECAST_TIMEOUT_SECONDS:180}

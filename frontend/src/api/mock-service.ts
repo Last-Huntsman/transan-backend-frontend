@@ -4,7 +4,13 @@ import {
   initialMockForecast,
   initialMockSpendings,
 } from './mock-data'
-import type { Spending, SpendingDraft, SpendingsPage } from './schemas'
+import type {
+  ForecastPage,
+  RegistrationResponse,
+  Spending,
+  SpendingDraft,
+  SpendingsPage,
+} from './schemas'
 import type { PaginationParams } from './spendings'
 
 const SPENDINGS_KEY = 'transan.mock.spendings'
@@ -21,7 +27,16 @@ export async function mockLogin(credentials: AuthCredentials) {
   return { access_token: `mock-jwt-${credentials.username}-${Date.now()}` }
 }
 
-export const mockRegister = mockLogin
+export async function mockRegister(
+  credentials: AuthCredentials,
+): Promise<RegistrationResponse> {
+  await wait(220)
+  validateCredentials(credentials)
+  return {
+    id: `user-${credentials.username}`,
+    username: credentials.username,
+  }
+}
 
 export async function mockFetchSpendings(params: PaginationParams) {
   await wait(180)
@@ -43,7 +58,7 @@ export async function mockCreateSpending(spending: SpendingDraft) {
   await wait(160)
   const next: Spending = {
     ...spending,
-    id: `sp-${crypto.randomUUID?.() ?? Date.now()}`,
+    id: `sp-${randomId()}`,
   }
   const spendings = [next, ...readSpendings()]
   writeSpendings(spendings)
@@ -79,11 +94,34 @@ export async function mockImportSpendingsCsv(file: File) {
     id: `${item.id}-${Date.now()}`,
   }))
   writeSpendings([...imported, ...existing])
+
+  return {
+    imported: imported.length,
+    failed: 0,
+    errors: [],
+  }
 }
 
-export async function mockFetchForecast(params: PaginationParams) {
+export async function mockFetchForecast(
+  params: PaginationParams,
+): Promise<ForecastPage> {
   await wait(200)
-  return paginate(readForecast(), params)
+  const allCategories = groupForecast(readForecast())
+  const page = Math.max(1, params.page)
+  const size = Math.max(1, params.size)
+  const start = (page - 1) * size
+  const categories = allCategories.slice(start, start + size)
+
+  return {
+    items: categories.flatMap((category) => category.spendings),
+    categories,
+    overall_comment:
+      'Демо-прогноз: основные риски сосредоточены в регулярных платежах, продуктах и еде вне дома.',
+    total: allCategories.length,
+    page,
+    size,
+    total_pages: Math.ceil(allCategories.length / size),
+  }
 }
 
 export function resetMockData() {
@@ -110,6 +148,20 @@ function paginate(items: Spending[], params: PaginationParams): SpendingsPage {
     page,
     size,
   }
+}
+
+function groupForecast(spendings: Spending[]): ForecastPage['categories'] {
+  const groups = spendings.reduce<Record<string, Spending[]>>((acc, spending) => {
+    const key = spending.category_name || 'Другое'
+    acc[key] = [...(acc[key] ?? []), spending]
+    return acc
+  }, {})
+
+  return Object.entries(groups).map(([category_name, items]) => ({
+    category_name,
+    total_sum: items.reduce((sum, spending) => sum + spending.sum, 0),
+    spendings: items,
+  }))
 }
 
 function readSpendings() {
@@ -166,6 +218,14 @@ type StorageLike = {
   getItem: (key: string) => string | null
   setItem: (key: string, value: string) => void
   removeItem: (key: string) => void
+}
+
+function randomId() {
+  if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) {
+    return crypto.randomUUID()
+  }
+
+  return String(Date.now())
 }
 
 function wait(ms: number) {

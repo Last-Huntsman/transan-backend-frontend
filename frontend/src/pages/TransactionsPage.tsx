@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
 import { Edit3, Plus, Search, Trash2 } from 'lucide-react'
 import { useMemo, useState } from 'react'
+import { USE_MOCKS } from '../api/mock-service'
 import type { Spending } from '../api/schemas'
 import {
   createSpending,
@@ -102,7 +103,7 @@ export function TransactionsPage() {
           </h1>
           <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
             {spendingsQuery.data
-              ? `${spendingsQuery.data.total} операций в demo-хранилище`
+              ? `${spendingsQuery.data.total} операций в ${USE_MOCKS ? 'demo-хранилище' : 'backend'}`
               : 'Операции пользователя'}
           </p>
         </div>

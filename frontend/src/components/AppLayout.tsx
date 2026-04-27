@@ -55,9 +55,13 @@ export function AppLayout() {
           </div>
 
           <div className="mb-5 rounded-xl border border-emerald-400/20 bg-emerald-400/10 p-3 text-xs leading-5 text-emerald-900 dark:text-emerald-100">
-            <div className="font-bold">Демо-режим активен</div>
+            <div className="font-bold">
+              {USE_MOCKS ? 'Демо-режим активен' : 'Live API подключен'}
+            </div>
             <div className="text-slate-600 dark:text-slate-300">
-              Можно проверять дизайн, CRUD и импорт без backend.
+              {USE_MOCKS
+                ? 'Можно проверять дизайн, CRUD и импорт без backend.'
+                : 'Данные идут через backend, отдельную Postgres и Kafka-контур.'}
             </div>
           </div>
 

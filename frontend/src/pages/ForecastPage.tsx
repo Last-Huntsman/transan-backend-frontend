@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
 import { CalendarClock, Gauge, Sigma, Sparkles } from 'lucide-react'
 import { Bar, BarChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
+import { USE_MOCKS } from '../api/mock-service'
 import { fetchForecast, fetchSpendings } from '../api/spendings'
 import { AnimatedNumber } from '../components/AnimatedNumber'
 import { categoryTotals, sumSpendings, topCurrency } from '../features/spendings/analytics'
@@ -54,7 +55,9 @@ export function ForecastPage() {
               Прогноз расходов
             </h1>
             <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-600 dark:text-slate-300">
-              Демо-модель показывает ожидаемые траты следующего периода и подсвечивает категории риска.
+              {USE_MOCKS
+                ? 'Демо-модель показывает ожидаемые траты следующего периода и подсвечивает категории риска.'
+                : 'Прогноз строится через backend, Kafka и logic-core на основе ваших реальных транзакций.'}
             </p>
           </div>
           <div className="rounded-2xl border border-amber-300/20 bg-amber-300/10 p-4">
@@ -78,7 +81,7 @@ export function ForecastPage() {
         <ForecastMetric
           icon={<CalendarClock className="h-5 w-5" />}
           label="Операций"
-          value={String(forecastPage.total)}
+          value={String(forecast.length)}
         />
         <ForecastMetric
           icon={<Sparkles className="h-5 w-5" />}

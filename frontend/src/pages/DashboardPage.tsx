@@ -13,6 +13,7 @@ import {
   XAxis,
   YAxis,
 } from 'recharts'
+import { USE_MOCKS } from '../api/mock-service'
 import { fetchForecast, fetchSpendings } from '../api/spendings'
 import { AnimatedNumber } from '../components/AnimatedNumber'
 import { ImportCsvButton } from '../components/ImportCsvButton'
@@ -82,7 +83,9 @@ export function DashboardPage() {
               Анализ трат в живом финансовом cockpit.
             </h1>
             <p className="mt-4 max-w-2xl text-sm leading-6 text-slate-600 dark:text-slate-300">
-              Сейчас показаны mock-данные: можно оценить визуал, графики, импорт и CRUD без работающего backend.
+              {USE_MOCKS
+                ? 'Сейчас показаны mock-данные: можно оценить визуал, графики, импорт и CRUD без работающего backend.'
+                : 'Live-режим подключен к backend, отдельной базе транзакций и Kafka-контуру logic-core для прогноза.'}
             </p>
           </div>
           <div className="grid content-end gap-3 sm:grid-cols-2">
@@ -219,7 +222,7 @@ export function DashboardPage() {
             </div>
           </div>
           <p className="mt-4 text-sm leading-6 text-slate-600 dark:text-slate-300">
-            Остаток до demo-бюджета:{' '}
+            Остаток до {USE_MOCKS ? 'demo-бюджета' : 'месячного бюджета'}:{' '}
             <strong className="text-slate-950 dark:text-white">
               {formatMoney(Math.max(monthlyBudget - total, 0), currency)}
             </strong>

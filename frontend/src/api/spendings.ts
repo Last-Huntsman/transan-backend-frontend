@@ -10,9 +10,12 @@ import {
   USE_MOCKS,
 } from './mock-service'
 import {
+  backendForecastPageSchema,
+  backendSpendingsPageSchema,
+  importResponseSchema,
   spendingDraftSchema,
+  spendingRequestSchema,
   spendingSchema,
-  spendingsPageSchema,
   type Spending,
   type SpendingDraft,
 } from './schemas'
@@ -29,8 +32,8 @@ export function fetchSpendings(params: PaginationParams) {
 
   return apiRequest('/spendings', {
     method: 'GET',
-    query: params,
-    schema: spendingsPageSchema,
+    query: toBackendPagination(params),
+    schema: backendSpendingsPageSchema,
   })
 }
 
@@ -64,7 +67,7 @@ export function updateSpending(spending: Spending) {
 
   return apiRequest(`/spendings/${spending.id}`, {
     method: 'PUT',
-    body: spendingSchema.parse(spending),
+    body: spendingRequestSchema.parse(spending),
     schema: spendingSchema,
   })
 }
@@ -90,6 +93,7 @@ export function importSpendingsCsv(file: File) {
   return apiRequest('/spendings/import', {
     method: 'POST',
     body: formData,
+    schema: importResponseSchema,
   })
 }
 
@@ -100,7 +104,14 @@ export function fetchForecast(params: PaginationParams) {
 
   return apiRequest('/spendings/forecast', {
     method: 'GET',
-    query: params,
-    schema: spendingsPageSchema,
+    query: toBackendPagination(params),
+    schema: backendForecastPageSchema,
   })
+}
+
+function toBackendPagination(params: PaginationParams) {
+  return {
+    page: Math.max(0, params.page - 1),
+    size: params.size,
+  }
 }

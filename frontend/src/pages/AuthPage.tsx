@@ -20,7 +20,14 @@ export function AuthPage({ mode }: { mode: AuthMode }) {
     password: 'demo',
   })
   const mutation = useMutation({
-    mutationFn: mode === 'login' ? login : register,
+    mutationFn: async (nextCredentials: AuthCredentials) => {
+      if (mode === 'login') {
+        return login(nextCredentials)
+      }
+
+      await register(nextCredentials)
+      return login(nextCredentials)
+    },
     onSuccess: (data) => {
       auth.signIn(data.access_token)
       navigate({ to: '/' })
@@ -33,6 +40,12 @@ export function AuthPage({ mode }: { mode: AuthMode }) {
 
   const title = mode === 'login' ? 'Войти в Transan' : 'Создать доступ'
   const action = mode === 'login' ? 'Войти' : 'Зарегистрироваться'
+  const modeHint = USE_MOCKS
+    ? 'Демо без backend: login demo / demo'
+    : 'Live API: используйте аккаунт backend'
+  const leadText = USE_MOCKS
+    ? 'Насыщенный dashboard, быстрый импорт CSV и аналитика по категориям, которую можно проверить уже сейчас на mock-данных.'
+    : 'Насыщенный dashboard, быстрый импорт CSV и аналитика по категориям, подключённая к backend, Kafka и logic-core.'
 
   return (
     <main className="premium-bg dark grid min-h-screen place-items-center px-4 py-8 text-white">
@@ -63,20 +76,20 @@ export function AuthPage({ mode }: { mode: AuthMode }) {
             <div className="max-w-2xl">
               <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.06] px-3 py-1.5 text-xs font-bold text-slate-200">
                 <ShieldCheck className="h-3.5 w-3.5 text-emerald-300" />
-                Демо без backend: login demo / demo
+                {modeHint}
               </div>
               <h1 className="text-4xl font-semibold leading-[1.02] md:text-6xl">
                 Финансовый радар для трат, бюджета и прогноза.
               </h1>
               <p className="mt-5 max-w-xl text-base leading-7 text-slate-300">
-                Насыщенный dashboard, быстрый импорт CSV и аналитика по категориям, которую можно проверить уже сейчас на mock-данных.
+                {leadText}
               </p>
             </div>
 
             <div className="grid gap-3 sm:grid-cols-3">
               {[
                 ['-18%', 'риск перерасхода'],
-                ['42', 'операции в демо'],
+                ['42', USE_MOCKS ? 'операции в демо' : 'операции в API'],
                 ['31 дн.', 'прогноз вперед'],
               ].map(([value, label]) => (
                 <div key={label} className="rounded-xl border border-white/10 bg-white/[0.06] p-4">

@@ -1,10 +1,15 @@
 import { apiRequest } from './client'
 import { mockLogin, mockRegister, USE_MOCKS } from './mock-service'
-import { authResponseSchema } from './schemas'
+import { authResponseSchema, registrationResponseSchema } from './schemas'
 
 export type AuthCredentials = {
   username: string
   password: string
+}
+
+export type RegistrationCredentials = AuthCredentials & {
+  monthly_budget?: number
+  is_male?: boolean
 }
 
 export function login(credentials: AuthCredentials) {
@@ -19,7 +24,7 @@ export function login(credentials: AuthCredentials) {
   })
 }
 
-export function register(credentials: AuthCredentials) {
+export function register(credentials: RegistrationCredentials) {
   if (USE_MOCKS) {
     return mockRegister(credentials)
   }
@@ -27,6 +32,6 @@ export function register(credentials: AuthCredentials) {
   return apiRequest('/auth/registration', {
     method: 'POST',
     body: credentials,
-    schema: authResponseSchema,
+    schema: registrationResponseSchema,
   })
 }

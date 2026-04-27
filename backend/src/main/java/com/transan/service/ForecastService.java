@@ -13,6 +13,7 @@ import com.transan.repository.SpendingRepository;
 import com.transan.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -34,6 +35,9 @@ public class ForecastService {
     private final ForecastKafkaListener kafkaListener;
     private final SpendingMapper spendingMapper;
 
+    @Value("${app.forecast.timeout-seconds}")
+    private long forecastTimeoutSeconds;
+
     public ForecastPageResponse getForecast(UUID userId, int page, int size) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
@@ -53,7 +57,7 @@ public class ForecastService {
 
         AnalysisProto.ForecastResponse response;
         try {
-            response = future.get(60, TimeUnit.SECONDS);
+            response = future.get(forecastTimeoutSeconds, TimeUnit.SECONDS);
         } catch (TimeoutException e) {
             kafkaListener.removeRequest(correlationId);
             throw new ForecastTimeoutException();
@@ -136,7 +140,7 @@ public class ForecastService {
 
     private SpendingResponse protoToResponse(AnalysisProto.Spending proto) {
         SpendingResponse resp = new SpendingResponse();
-        resp.setId(proto.getId().isEmpty() ? null : UUID.fromString(proto.getId()));
+        resp.setId(parseUuidOrNull(proto.getId()));
         resp.setSum(BigDecimal.valueOf(proto.getSum()));
         resp.setDate(proto.getDate().isEmpty() ? null : LocalDate.parse(proto.getDate()));
         resp.setBankCategory(proto.getBankCategory().isEmpty() ? null : proto.getBankCategory());
@@ -145,6 +149,17 @@ public class ForecastService {
         resp.setCategoryName(proto.getCategoryName().isEmpty() ? null : proto.getCategoryName());
         resp.setComment(proto.getComment().isEmpty() ? null : proto.getComment());
         return resp;
+    }
+
+    private static UUID parseUuidOrNull(String value) {
+        if (value == null || value.isEmpty()) {
+            return null;
+        }
+        try {
+            return UUID.fromString(value);
+        } catch (IllegalArgumentException ignored) {
+            return null;
+        }
     }
 
     public static class ForecastTimeoutException extends RuntimeException {
